@@ -1,3 +1,6 @@
+'''
+this module contains methods to retrieve document from vector database or from website
+'''
 from langchain_google_community import GoogleSearchAPIWrapper
 from langchain_core.tools import Tool
 from langchain.schema import Document
@@ -75,8 +78,7 @@ def web_search(state):
         chunk_size=1000, chunk_overlap=0
     )
     splits = splitter.split_documents(docs_transformed)
-    print(type(splits))
-
+    
     web_results = '\n'.join([str(x) for x in splits])
 
     web_results = Document(page_content=web_results)

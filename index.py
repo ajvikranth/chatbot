@@ -1,3 +1,7 @@
+'''
+this module contains methods to load ,tokenize and index document into vector database
+'''
+
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import WebBaseLoader
 from langchain_community.vectorstores import Chroma
@@ -7,6 +11,12 @@ import os
   
 # creating a pdf reader object 
 def tokenize_en():
+    '''
+    reads pdf files and tokenizes them
+
+    Returns:
+        doc_splits (list): list of tokenized doc
+    '''
 
     cwd = os.path.join(os.getcwd(),'doc/english')
     for file in os.listdir(cwd):
@@ -14,7 +24,7 @@ def tokenize_en():
         docs = loader.load_and_split()
 
         text_splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(
-            chunk_size=250, chunk_overlap=0
+            chunk_size=1000, chunk_overlap=0
         )
         doc_splits = text_splitter.split_documents(docs)
 
@@ -22,6 +32,15 @@ def tokenize_en():
 
 
 def index(doc_splits):
+    '''
+    indexes the tokenized documents into vector database
+
+    Args:
+        doc_splits (list): list of tokenized doc
+
+    Returns:
+        retriever (method): vector store retriver method
+    '''
     # Add to vectorDB
     vectorstore = Chroma.from_documents(
         documents=doc_splits,
@@ -34,10 +53,14 @@ def index(doc_splits):
     return retriever
 
 def Retriever():
+    '''
+    datapipeline which tokenizes and indexes pdf
+
+    Returns:
+        retriever (method): vector store retriver method
+    '''
     return index(tokenize_en())
 
 if __name__=="__main__":
-    retriever = Retriever()
-    question = "Can you provide me Vanessa Lehr's contact info?"
-    docs = retriever.invoke(question)
-    print(docs)
+    pass
+    

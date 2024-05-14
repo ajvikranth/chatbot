@@ -1,7 +1,7 @@
-### Generate
-
+'''
+this module contains all nodes required in langgraph flow
+'''
 from langchain.prompts import PromptTemplate
-from langchain import hub
 from langchain_core.output_parsers import StrOutputParser
 from langchain_community.chat_models import ChatOllama
 from langchain_core.output_parsers import JsonOutputParser
@@ -63,16 +63,13 @@ ans_grad_prompt = PromptTemplate(
 #router prompt
 rout_prompt = PromptTemplate(
     template="""<|begin_of_text|><|start_header_id|>system<|end_header_id|> You are an expert at routing a 
-    user question to a vectorstore or web search. Use the vectorstore for questions on various course details 
-    like contact info subject content , dates  You do not need to be stringent with the keywords 
-    in the question related to these topics. Otherwise, use web-search. Give a binary choice 'web_search' 
-    or 'vectorstore' based on the question. Return the a JSON with a single key 'datasource' and 
+    user question to a vectorstore or web search. Use the vectorstore for questions on course details regarding Master's degree in Applied Data Science and
+    Analytics You do not need to be stringent with the keywords in the question related to these topics.
+    Otherwise, use web-search. Give a binary choice 'web_search' or 'vectorstore' based on the question. Return the
+    a JSON with a single key 'datasource' and 
     no premable or explaination. Question to route: {question} <|eot_id|><|start_header_id|>assistant<|end_header_id|>""",
     input_variables=["question"],
 )
-
-llm = ChatOllama(model='llama3',format="json", temperature=0)
-
 
 
 def generate(state):
@@ -89,17 +86,20 @@ def generate(state):
     def format_docs(docs):
         return "\n\n".join(doc.page_content for doc in docs)
     
+    llm = ChatOllama(model='llama3', temperature=0)
+    
     question = state["question"]
     documents = state["documents"]
+    web_search = state["web_search"]
+    tag = 'useful'
 
     # Chain
     rag_chain = gen_prompt | llm | StrOutputParser()
 
     # RAG generation
     generation = rag_chain.invoke({"context": format_docs(documents), "question": question})
-    return {"documents": documents, "question": question, "generation": generation}
-
-
+    
+    return {"documents": format_docs(documents), "question": question, "generation": generation, 'tag':tag,'web_search':web_search}
 
 def grade_documents(state):
     """
@@ -116,6 +116,8 @@ def grade_documents(state):
     print("---CHECK DOCUMENT RELEVANCE TO QUESTION---")
     question = state["question"]
     documents = state["documents"]
+
+    llm = ChatOllama(model='llama3',format="json", temperature=0)
 
     retrieval_grader = doc_grad_prompt | llm | JsonOutputParser()
 
@@ -157,6 +159,8 @@ def route_question(state):
     question = state["question"]
     print(question)
 
+    llm = ChatOllama(model='llama3',format="json", temperature=0)
+
     question_router = rout_prompt | llm | JsonOutputParser()
     source = question_router.invoke({"question": question})
 
@@ -184,6 +188,8 @@ def decide_to_generate(state):
     question = state["question"]
     web_search = state["web_search"]
     filtered_documents = state["documents"]
+
+    
 
     if web_search == "Yes":
         # All documents have been filtered check_relevance
@@ -213,12 +219,16 @@ def grade_generation_v_documents_and_question(state):
     documents = state["documents"]
     generation = state["generation"]
 
+    llm = ChatOllama(model='llama3',format="json", temperature=0)
+
     hallucination_grader = hal_prompt | llm | JsonOutputParser()
 
     score = hallucination_grader.invoke(
         {"documents": documents, "generation": generation}
     )
-    grade = score["score"]
+
+    print(score)
+    grade = score.get('score','yes')
 
     # Check hallucination
     if grade == "yes":
@@ -229,7 +239,7 @@ def grade_generation_v_documents_and_question(state):
         answer_grader = ans_grad_prompt | llm | JsonOutputParser()
 
         score = answer_grader.invoke({"question": question, "generation": generation})
-        grade = score["score"]
+        grade = score.get('score','yes')
         if grade == "yes":
             print("---DECISION: GENERATION ADDRESSES QUESTION---")
             return "useful"
@@ -241,20 +251,41 @@ def grade_generation_v_documents_and_question(state):
         return "not supported"
     
 def not_supported(state):
+    """
+    Changes the tag to not useful
+
+    Args:
+        state (dict): The current graph state
+
+    Returns:
+        state (dict): New key added to state, tag, that contains how relevant is generation
+    """
 
     pprint("---DECISION: GENERATION IS NOT GROUNDED IN DOCUMENTS---")
     documents = state['documents']
     question =state["question"]
     generation = state['generation']
     tag = 'not useful'
+    web_search = state["web_search"]
 
-    return {"documents": documents, "question": question,'generation':generation,'tag':tag}
+    return {"documents": documents, "question": question,'generation':generation,'tag':tag,'web_search':web_search}
 
 def not_useful(state):
+    """
+    Changes the tag to not supported
+
+    Args:
+        state (dict): The current graph state
+
+    Returns:
+        state (dict): New key added to state, tag, that contains how relevant is generation
+    """
     print("---DECISION: GENERATION DOES NOT ADDRESS QUESTION---")
     documents = state['documents']
     question =state["question"]
     generation = state['generation']
     tag = 'not supported'
-    return {"documents": documents, "question": question,'generation':generation, "tag": tag}
+    web_search = state["web_search"]
+
+    return {"documents": documents, "question": question,'generation':generation, "tag": tag, 'web_search':web_search}
 

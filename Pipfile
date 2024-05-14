@@ -19,6 +19,7 @@ google-api-python-client = ">=2.100.0"
 langchain-google-community = "*"
 playwright = "*"
 beautifulsoup4 = "*"
+gradio = "*"
 
 [dev-packages]
 
