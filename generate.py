@@ -250,7 +250,7 @@ def grade_generation_v_documents_and_question(state):
         pprint("---DECISION: GENERATION IS NOT GROUNDED IN DOCUMENTS---")
         return "not supported"
     
-def not_supported(state):
+def not_useful(state):
     """
     Changes the tag to not useful
 
@@ -270,7 +270,7 @@ def not_supported(state):
 
     return {"documents": documents, "question": question,'generation':generation,'tag':tag,'web_search':web_search}
 
-def not_useful(state):
+def not_supported(state):
     """
     Changes the tag to not supported
 

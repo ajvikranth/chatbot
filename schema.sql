@@ -1,0 +1,1 @@
+CREATE TABLE log ( id integer primary key, question text not null, generation text not null, tag text , web_search text , documents text, Timestamp DATETIME DEFAULT CURRENT_TIMESTAMP)

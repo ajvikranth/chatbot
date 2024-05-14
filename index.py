@@ -54,7 +54,7 @@ def index(doc_splits):
 
 def Retriever():
     '''
-    datapipeline which tokenizes and indexes pdf
+    pipeline function which tokenizes and indexes pdf
 
     Returns:
         retriever (method): vector store retriver method
@@ -63,4 +63,3 @@ def Retriever():
 
 if __name__=="__main__":
     pass
-    
