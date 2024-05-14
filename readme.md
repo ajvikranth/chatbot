@@ -34,10 +34,10 @@ This repository contains the code for a Retrieval-Augmented Generation (RAG) mod
 3. **Set up the google api key:**
 
 - create a .env file which contains google api key and custom search engine ID as below
-
-api_key = "xxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-
-cse_id = 'xxxxxxxxxxxxxx'
+  
+   ```bash
+   api_key = "xxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+   cse_id = 'xxxxxxxxxxxxxx'
 
 **Note:** install LLAMA3 locally with help of OLAMA
 
